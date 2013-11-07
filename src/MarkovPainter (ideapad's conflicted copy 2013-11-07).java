@@ -60,21 +60,11 @@ class PatchConnection implements Comparable<PatchConnection>{
 }
 
 class Patch implements Comparable{
-    BufferedImage pixels; 
+    BufferedImage pixels;
+    
     double brightness = 0.0;
     double probability = 1.0;	// 1.0 = 100% Sure about this patch. 0.0
     
-    boolean isMasked = false;
-    
-    // = 7650
-    static int MAX_EDGE_DIFF = (PatchGrid.WINDOW_SIZE) * (255 * 3);
-    
-    public Patch(Patch p){
-    	pixels = p.pixels;
-    	brightness = p.brightness;
-    	probability = p.probability;
-    	isMasked = p.isMasked;
-    }
     
     public Patch(BufferedImage p){
     	pixels = p;
@@ -119,33 +109,33 @@ class Patch implements Comparable{
 		int rDiff = Math.abs(colorA.getRed() - colorB.getRed());
 		int gDiff = Math.abs(colorA.getGreen() - colorB.getGreen());
 		int bDiff = Math.abs(colorA.getBlue() - colorB.getBlue());
-		
-		int diff =rDiff + gDiff + bDiff;
-		return diff;
+		return rDiff + gDiff + bDiff;
     }
     
     public ArrayList<Patch> getNextRight(ArrayList<Patch> patches){
     	double minDiff = Double.MAX_VALUE;
     	ArrayList<Patch> minPatches = new ArrayList<Patch>();
-    	//Patch minPatch;
+    	Patch minPatch;
     	// Match up the difference between our right most pixel and their
     	// left most pixel
     	int ourRight = this.pixels.getWidth() - 1;
     	for(Patch p : patches){
     		double totalDiff = 0;
-    		if(p != null && p.pixels != null){
-	    		for(int y = 0; y < pixels.getHeight(); y++){
-	    			// Look along the right edge
-		    		totalDiff += getColorDifference(pixels.getRGB(ourRight, y), p.pixels.getRGB(0, y));
-	    		}
+    		
+    		for(int y = 0; y < pixels.getHeight(); y++){
+    			if(p != null && p.pixels != null){
+    				
+	    			int rDiff = Math.abs(myPix.getRed() - theirPix.getRed());
+	    			int gDiff = Math.abs(myPix.getGreen() - theirPix.getGreen());
+	    			int bDiff = Math.abs(myPix.getBlue() - theirPix.getBlue());
+	    			int diff = rDiff + gDiff + bDiff;
+	    			totalDiff += getColorDifference(pixels.getRGB(ourRight, y), p.pixels.getRGB(0, y));
+    			}
     		}
     		if(totalDiff < minDiff){
     			minDiff = totalDiff;
-    			//minPatch = p;
-    			Patch newMinPatch = new Patch(p);
-    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
-    			System.out.println("new min prob is " + newMinPatch.probability);
-    			minPatches.add(newMinPatch); 
+    			minPatch = p;
+    			minPatches.add(p);
     		}
     	}
     	return minPatches;

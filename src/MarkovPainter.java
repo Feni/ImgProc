@@ -124,30 +124,96 @@ class Patch implements Comparable{
 		return diff;
     }
     
+    // Look along the right edge and find a list of patches
+    // that best match up with that edge
     public ArrayList<Patch> getNextRight(ArrayList<Patch> patches){
     	double minDiff = Double.MAX_VALUE;
     	ArrayList<Patch> minPatches = new ArrayList<Patch>();
-    	//Patch minPatch;
-    	// Match up the difference between our right most pixel and their
-    	// left most pixel
+    	if(isMasked){return minPatches;}
     	int ourRight = this.pixels.getWidth() - 1;
+    	
     	for(Patch p : patches){
     		double totalDiff = 0;
     		if(p != null && p.pixels != null){
 	    		for(int y = 0; y < pixels.getHeight(); y++){
-	    			// Look along the right edge
 		    		totalDiff += getColorDifference(pixels.getRGB(ourRight, y), p.pixels.getRGB(0, y));
 	    		}
     		}
-    		if(totalDiff < minDiff){
+    		if(totalDiff <= minDiff){
     			minDiff = totalDiff;
-    			//minPatch = p;
     			Patch newMinPatch = new Patch(p);
     			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
-    			System.out.println("new min prob is " + newMinPatch.probability);
     			minPatches.add(newMinPatch); 
     		}
     	}
     	return minPatches;
     }
+    
+    // Our left edge. Their right edge
+    public ArrayList<Patch> getNextLeft(ArrayList<Patch> patches){
+    	double minDiff = Double.MAX_VALUE;
+    	ArrayList<Patch> minPatches = new ArrayList<Patch>();
+    	if(isMasked){return minPatches;}
+    	int otherRight = this.pixels.getWidth() - 1;
+    	for(Patch p : patches){
+    		double totalDiff = 0;
+    		if(p != null && p.pixels != null){
+	    		for(int y = 0; y < pixels.getHeight(); y++){
+		    		totalDiff += getColorDifference(pixels.getRGB(0, y), p.pixels.getRGB(otherRight, y));
+	    		}
+    		}
+    		if(totalDiff <= minDiff){
+    			minDiff = totalDiff;
+    			Patch newMinPatch = new Patch(p);
+    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			minPatches.add(newMinPatch); 
+    		}
+    	}
+    	return minPatches;
+    }
+    
+    // Which patch should come above us?
+    public ArrayList<Patch> getNextAbove(ArrayList<Patch> patches){
+    	double minDiff = Double.MAX_VALUE;
+    	ArrayList<Patch> minPatches = new ArrayList<Patch>();
+    	if(isMasked){return minPatches;}
+    	int theirBase = this.pixels.getHeight() - 1;
+    	for(Patch p : patches){
+    		double totalDiff = 0;
+    		if(p != null && p.pixels != null){
+	    		for(int x = 0; x < pixels.getWidth(); x++){
+		    		totalDiff += getColorDifference(pixels.getRGB(x, 0), p.pixels.getRGB(x, theirBase));
+	    		}
+    		}
+    		if(totalDiff <= minDiff){
+    			minDiff = totalDiff;
+    			Patch newMinPatch = new Patch(p);
+    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			minPatches.add(newMinPatch); 
+    		}
+    	}
+    	return minPatches;
+    }
+    
+    public ArrayList<Patch> getNextBelow(ArrayList<Patch> patches){
+    	double minDiff = Double.MAX_VALUE;
+    	ArrayList<Patch> minPatches = new ArrayList<Patch>();
+    	if(isMasked){return minPatches;}
+    	int ourBase = this.pixels.getHeight() - 1;
+    	for(Patch p : patches){
+    		double totalDiff = 0;
+    		if(p != null && p.pixels != null){
+	    		for(int x = 0; x < pixels.getWidth(); x++){
+		    		totalDiff += getColorDifference(pixels.getRGB(x, ourBase), p.pixels.getRGB(x, 0));
+	    		}
+    		}
+    		if(totalDiff <= minDiff){
+    			minDiff = totalDiff;
+    			Patch newMinPatch = new Patch(p);
+    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			minPatches.add(newMinPatch); 
+    		}
+    	}
+    	return minPatches;
+    }    
 }

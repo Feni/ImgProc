@@ -92,31 +92,30 @@ public class PatchGrid {
 			Patch top = null;
 			Patch bottom = null;
 			
-			ArrayList<Patch> bestCandidates = new ArrayList<Patch>();
+			//ArrayList<Patch> bestCandidates = new ArrayList<Patch>();
 			if(leftSuggestions.size() > 0){
 				left = leftSuggestions.get(leftSuggestions.size() - 1);
-				bestCandidates.add(left);
+				if(left.isMasked){
+					left = null;
+				}
 			}
 			if(rightSuggestions.size() > 0){
 				right = rightSuggestions.get(rightSuggestions.size() - 1);
-				bestCandidates.add(right);
+				if(right.isMasked){
+					right = null;
+				}
 			}
 			if(topSuggestions.size() > 0){
 				top = topSuggestions.get(topSuggestions.size() - 1);
-				bestCandidates.add(top);
 			}
 			if(bottomSuggestions.size() > 0){
-				bottom = bottomSuggestions.get(bottomSuggestions.size() - 1);
-				bestCandidates.add(bottom);	
+				bottom = bottomSuggestions.get(bottomSuggestions.size() - 1);	
 			}
 			
 			BufferedImage mergedPatch = new BufferedImage(WINDOW_SIZE, WINDOW_SIZE, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g = (Graphics2D) mergedPatch.createGraphics();
-			float transparency = (float) 1.0/bestCandidates.size();
-			
 			
 			// Add weighted componenets to improve the average...
-			if(left != null){
+			if(left != null || right != null || top != null || bottom != null){
 				for(int x = 0; x < WINDOW_SIZE; x++){
 					for(int y = 0; y < WINDOW_SIZE; y++){
 						int pixR = 0;
@@ -126,7 +125,8 @@ public class PatchGrid {
 						if(left != null){
 							Color c = new Color(left.pixels.getRGB(x, y));
 							// x = 0 should be 1. x = WINDOW_SIZE = 0. 
-							double leftWeight = 1 - (x / (double) WINDOW_SIZE);	// left most pixel =
+							double leftWeight = 1.0 - (x / (double) WINDOW_SIZE);	// left most pixel =
+//							System.out.println("Left weight " + leftWeight);
 							leftWeight *= left.probability;
 							totalProb += leftWeight;
 							
@@ -139,6 +139,7 @@ public class PatchGrid {
 							Color c = new Color(right.pixels.getRGB(x, y));
 
 							double rightWeight = (x / (double) WINDOW_SIZE);	// left most pixel =
+//							System.out.println("right weight " + rightWeight);							
 							rightWeight *= right.probability;
 							totalProb += rightWeight;
 							
@@ -150,7 +151,8 @@ public class PatchGrid {
 						if(top != null){
 							Color c = new Color(top.pixels.getRGB(x, y));
 							// y = 0 should have weight = 1; 
-							double topWeight = 1 - (y / (double) WINDOW_SIZE);	// left most pixel =
+							double topWeight = 1.0 - (y / (double) WINDOW_SIZE);	// left most pixel =
+//							System.out.println("top weight " + topWeight);							
 							topWeight *= top.probability;
 							totalProb += topWeight;
 							
@@ -163,6 +165,7 @@ public class PatchGrid {
 							Color c = new Color(bottom.pixels.getRGB(x, y));
 							// y = 0 should have weight = 1; 
 							double bottomWeight = (y / (double) WINDOW_SIZE);	// left most pixel =
+//							System.out.println("bottom weight " + bottomWeight);
 							bottomWeight *= bottom.probability;
 							totalProb += bottomWeight;
 							
@@ -180,10 +183,16 @@ public class PatchGrid {
 			
 			
 			double newProb = 0.0;
-			for(Patch p : bestCandidates){
-			//	g.drawImage(getSemiImg(p.pixels, (float) transparency), 0, 0, null);
-				newProb += 0.25 * p.probability;
-			}
+			if(left != null)
+				newProb += 0.25 * left.probability;
+			if(right!= null)
+				newProb += 0.25 * right.probability;
+			if(top != null)
+				newProb += 0.25 * top.probability;
+			if(bottom != null)
+				newProb += 0.25 * bottom.probability;
+			
+
 			
 			Patch newPatch = new Patch(mergedPatch, patchX, patchY);
 			newPatch.probability = newProb;
@@ -240,83 +249,39 @@ public class PatchGrid {
 			}
 		}
 		
-		for(int i = 0; i < 30; i++){
+		// TODO: loop until steady state;
+		boolean moreTODO = true;
+		while(moreTODO){
+			
 			ArrayList<Patch> candidates = new ArrayList<Patch>();
-
+			moreTODO = false;
 			for(int x = 0; x < maskGridPattern.length; x++){
 				for(int y = 0; y < maskGridPattern[0].length; y++){
 					if(maskGridPattern[x][y]){	// It's a patch to be filled
 						candidates.add(findPatch(x, y, 1));
+						moreTODO = true;
 					}
 				}
 			}
 			
-			double bestCandidateProb = 0.0;
-			Patch bestPatch = candidates.get(0);
-			for(Patch p : candidates){
-				if(p.probability > bestCandidateProb){
-					bestCandidateProb = p.probability;
-					bestPatch = p;
+			if(candidates.size() > 0){
+				double bestCandidateProb = 0.0;				
+				Patch bestPatch = candidates.get(0);
+				for(Patch p : candidates){
+					if(p.probability > bestCandidateProb){
+						bestCandidateProb = p.probability;
+						bestPatch = p;
+					}
 				}
+				
+				System.out.println("Best probability is " + bestCandidateProb);
+				maskGridPattern[bestPatch.patchX][bestPatch.patchY] = false;
+				patches[bestPatch.patchX][bestPatch.patchY] = bestPatch;
+				
 			}
-			
-			System.out.println("Best probability is " + bestCandidateProb);
-			maskGridPattern[bestPatch.patchX][bestPatch.patchY] = false;
-			patches[bestPatch.patchX][bestPatch.patchY] = bestPatch;
 			
 		}
 		
 	}
 	
-	public boolean[][] fillTL(boolean[][] maskGrid){
-		for(int x = 0; x < maskGrid.length; x++){
-			for(int y = 0; y < maskGrid[0].length; y++){
-				if(maskGrid[x][y]){	// It's a patch to be filled
-					patches[x][y] = findPatch(x, y, 1);
-					maskGrid[x][y] = false;
-					return maskGrid;
-				}
-			}
-		}
-		return maskGrid;
-	}
-	
-	public boolean[][] fillTR(boolean[][] maskGrid){
-		for(int x = maskGrid.length - 1; x >= 0; x--){
-			for(int y = 0; y < maskGrid[0].length; y++){
-				if(maskGrid[x][y]){	// It's a patch to be filled
-					patches[x][y] = findPatch(x, y, 1);
-					maskGrid[x][y] = false;
-					return maskGrid;
-				}
-			}
-		}
-		return maskGrid;
-	}
-	
-	public boolean[][] fillBL(boolean[][] maskGrid){
-		for(int y = 0; y < maskGrid[0].length; y++){
-			for(int x = maskGrid.length - 1; x >= 0; x--){
-				if(maskGrid[x][y]){	// It's a patch to be filled
-					patches[x][y] = findPatch(x, y, 1);
-					maskGrid[x][y] = false;
-					return maskGrid;
-				}
-			}
-		}
-		return maskGrid;
-	}
-	
-	public boolean[][] fillBR(boolean[][] maskGrid){
-		for(int y = maskGrid[0].length - 1; y >= 0 ; y--){
-			for(int x = maskGrid.length - 1; x >= 0; x--){
-				if(maskGrid[x][y]){	// It's a patch to be filled
-					patches[x][y] = findPatch(x, y, 1);
-					maskGrid[x][y] = false;
-					return maskGrid;
-				}
-			}
-		}
-		return maskGrid;
-	}	
 }

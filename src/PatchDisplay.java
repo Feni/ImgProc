@@ -16,9 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 
-public class PatchDisplay extends JFrame{
+public class PatchDisplay extends JFrame implements Runnable{
     static ImageIcon selectedIcon;
     static JLabel selectedIconDisplay;
+    static JLabel originalImg; 
     static JList<ImageIcon> nextStates;
     static JPanel controlPanel;
     static PatchGrid imgGrid;
@@ -34,7 +35,7 @@ public class PatchDisplay extends JFrame{
  	   	JPanel imgPanel = new JPanel();
  	   	controlPanel = new JPanel();
  	   	
- 	   	JLabel originalImg = new JLabel(new ImageIcon(imgGrid.getRenderedImage()));
+ 	   	originalImg = new JLabel(new ImageIcon(imgGrid.getRenderedImage()));
  	   	originalImg.addMouseListener(new PatchSelector(imgGrid));
  	   	
  	   	selectedIcon = new ImageIcon(imgGrid.getImage().getScaledInstance(200, 100, 0));
@@ -76,6 +77,7 @@ public class PatchDisplay extends JFrame{
  	  	
  	  	this.pack();
  	  	setVisible(true);
+ 	  	new Thread(this).start();
 	}
 	
 	public static void updateSelection(Patch newSelected, Patch[] patchList){
@@ -101,6 +103,21 @@ public class PatchDisplay extends JFrame{
 				
 			}*/
 			selectedIconDisplay.repaint();
+		}
+	}
+	
+	public void updateImage(){
+		originalImg.setIcon(new ImageIcon(imgGrid.getRenderedImage()));
+	}
+	
+	public void run(){
+		while(true){
+			updateImage();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

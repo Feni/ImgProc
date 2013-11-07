@@ -16,10 +16,12 @@ public class MarkovPainter{
 			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMask.png"));
 			   PatchGrid maskGrid = new PatchGrid(maskImg);
 			   
+			   PatchDisplay display = new PatchDisplay(imgGrid);
+			   
 			   imgGrid.applyMask(maskGrid);
 			   imgGrid.fillMask(maskGrid);
 			   
-			   PatchDisplay display = new PatchDisplay(imgGrid);
+			   
 			   
 			   System.out.println("Done initializing Markov Painter");
 			   while(true){}

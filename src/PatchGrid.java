@@ -25,7 +25,7 @@ public class PatchGrid {
 				int patchX = (int) x / WINDOW_SIZE;
 				
 			    BufferedImage subImage = img.getSubimage(x, y, (int) WINDOW_SIZE, (int) WINDOW_SIZE);
-			    Patch p = new Patch(subImage);
+			    Patch p = new Patch(subImage, x, y);
 			    
 			    if(previousPatch != null){
 			    	PatchConnection newCon = new PatchConnection(previousPatch, p, 0.9);
@@ -82,87 +82,119 @@ public class PatchGrid {
 		
 		// What do each of the patches surrounding us suggest?
 		if(deapth > 0){
-			ArrayList<Patch> leftSuggestion = findPatch(patchX - 1, patchY, deapth - 1).getNextRight(allPatches);
-			ArrayList<Patch> rightSuggestion = findPatch(patchX + 1, patchY, deapth - 1).getNextLeft(allPatches);
-			ArrayList<Patch> topSuggestion = findPatch(patchX, patchY - 1, deapth - 1).getNextBelow(allPatches);
-			ArrayList<Patch> bottomSuggestion = findPatch(patchX, patchY + 1, deapth - 1).getNextAbove(allPatches);
+			ArrayList<Patch> leftSuggestions = findPatch(patchX - 1, patchY, deapth - 1).getNextRight(allPatches);
+			ArrayList<Patch> rightSuggestions = findPatch(patchX + 1, patchY, deapth - 1).getNextLeft(allPatches);
+			ArrayList<Patch> topSuggestions = findPatch(patchX, patchY - 1, deapth - 1).getNextBelow(allPatches);
+			ArrayList<Patch> bottomSuggestions = findPatch(patchX, patchY + 1, deapth - 1).getNextAbove(allPatches);
 			
-			// Return the one with the most probability
-			/*double maxProb = 0.0;
-			Patch maxPatch = patches[patchX][patchY];
-			for(Patch p : leftSuggestion){
-				if(p.probability > maxProb){
-					maxProb = p.probability;
-					maxPatch = p;
-				}
-			}
+			Patch left = null;
+			Patch right = null;
+			Patch top = null;
+			Patch bottom = null;
 			
-			for(Patch p : rightSuggestion){
-				if(p.probability > maxProb){
-					maxProb = p.probability;
-					maxPatch = p;
-				}
-			}
-			for(Patch p : topSuggestion){
-				if(p.probability > maxProb){
-					maxProb = p.probability;
-					maxPatch = p;
-				}
-			}
-			for(Patch p : bottomSuggestion){
-				if(p.probability > maxProb){
-					maxProb = p.probability;
-					maxPatch = p;
-				}
-			}*/
 			ArrayList<Patch> bestCandidates = new ArrayList<Patch>();
-			if(leftSuggestion.size() > 0)
-				bestCandidates.add(leftSuggestion.get(leftSuggestion.size() - 1));
-			if(rightSuggestion.size() > 0)
-				bestCandidates.add(rightSuggestion.get(rightSuggestion.size() - 1));
-			if(topSuggestion.size() > 0)
-				bestCandidates.add(topSuggestion.get(topSuggestion.size() - 1));
-			if(bottomSuggestion.size() > 0)
-				bestCandidates.add(bottomSuggestion.get(bottomSuggestion.size() - 1));			
+			if(leftSuggestions.size() > 0){
+				left = leftSuggestions.get(leftSuggestions.size() - 1);
+				bestCandidates.add(left);
+			}
+			if(rightSuggestions.size() > 0){
+				right = rightSuggestions.get(rightSuggestions.size() - 1);
+				bestCandidates.add(right);
+			}
+			if(topSuggestions.size() > 0){
+				top = topSuggestions.get(topSuggestions.size() - 1);
+				bestCandidates.add(top);
+			}
+			if(bottomSuggestions.size() > 0){
+				bottom = bottomSuggestions.get(bottomSuggestions.size() - 1);
+				bestCandidates.add(bottom);	
+			}
 			
 			BufferedImage mergedPatch = new BufferedImage(WINDOW_SIZE, WINDOW_SIZE, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g = (Graphics2D) mergedPatch.createGraphics();
 			float transparency = (float) 1.0/bestCandidates.size();
-			double newProb = 1.0;
-			for(int x = 0; x < WINDOW_SIZE; x++){
-				for(int y = 0; y < WINDOW_SIZE; y++){
-					int pixR = 0;
-					int pixG = 0;
-					int pixB = 0;
-					
-					double totalProb = 0;
-					
-					for(Patch p : bestCandidates){
-						Color c = new Color(p.pixels.getRGB(x, y));
+			
+			
+			// Add weighted componenets to improve the average...
+			if(left != null){
+				for(int x = 0; x < WINDOW_SIZE; x++){
+					for(int y = 0; y < WINDOW_SIZE; y++){
+						int pixR = 0;
+						int pixG = 0;
+						int pixB = 0;
+						double totalProb = 0.0;
+						if(left != null){
+							Color c = new Color(left.pixels.getRGB(x, y));
+							// x = 0 should be 1. x = WINDOW_SIZE = 0. 
+							double leftWeight = 1 - (x / (double) WINDOW_SIZE);	// left most pixel =
+							leftWeight *= left.probability;
+							totalProb += leftWeight;
+							
+							pixR += leftWeight * c.getRed();
+							pixG += leftWeight * c.getGreen();
+							pixB += leftWeight * c.getBlue();							
+						}
 						
-						pixR += p.probability * c.getRed();
-						pixG += p.probability * c.getGreen();
-						pixB += p.probability * c.getBlue();
+						if(right != null){
+							Color c = new Color(right.pixels.getRGB(x, y));
+
+							double rightWeight = (x / (double) WINDOW_SIZE);	// left most pixel =
+							rightWeight *= right.probability;
+							totalProb += rightWeight;
+							
+							pixR += rightWeight * c.getRed();
+							pixG += rightWeight * c.getGreen();
+							pixB += rightWeight * c.getBlue();							
+						}
 						
-						totalProb += p.probability;
+						if(top != null){
+							Color c = new Color(top.pixels.getRGB(x, y));
+							// y = 0 should have weight = 1; 
+							double topWeight = 1 - (y / (double) WINDOW_SIZE);	// left most pixel =
+							topWeight *= top.probability;
+							totalProb += topWeight;
+							
+							pixR += topWeight * c.getRed();
+							pixG += topWeight * c.getGreen();
+							pixB += topWeight * c.getBlue();							
+						}						
+
+						if(bottom != null){
+							Color c = new Color(bottom.pixels.getRGB(x, y));
+							// y = 0 should have weight = 1; 
+							double bottomWeight = (y / (double) WINDOW_SIZE);	// left most pixel =
+							bottomWeight *= bottom.probability;
+							totalProb += bottomWeight;
+							
+							pixR += bottomWeight * c.getRed();
+							pixG += bottomWeight * c.getGreen();
+							pixB += bottomWeight * c.getBlue();							
+						}						
+												
+						
+						mergedPatch.setRGB(x, y, new Color((int) (pixR / totalProb), (int) (pixG / totalProb), (int) (pixB / totalProb)).getRGB());
 					}
-					
-					mergedPatch.setRGB(x, y, new Color((int) (pixR / totalProb), (int) (pixG / totalProb), (int) (pixB / totalProb)).getRGB());
-					
 				}
+
 			}
 			
-			/*for(Patch p : bestCandidates){
-				g.drawImage(getSemiImg(p.pixels, (float) transparency), 0, 0, null);
-				newProb *= p.probability;
-			}*/
 			
-			Patch newPatch = new Patch(mergedPatch);
+			double newProb = 0.0;
+			for(Patch p : bestCandidates){
+			//	g.drawImage(getSemiImg(p.pixels, (float) transparency), 0, 0, null);
+				newProb += 0.25 * p.probability;
+			}
+			
+			Patch newPatch = new Patch(mergedPatch, patchX, patchY);
 			newPatch.probability = newProb;
+			
+//			System.out.println("New prob is " + newPatch.probability);
 			return newPatch;
 		}
 		else{
-			return patches[patchX][patchY];
+			Patch p = new Patch(patches[patchX][patchY]);
+			p.probability = 0.0;
+			return p;
 		}
 	}
 	
@@ -208,12 +240,32 @@ public class PatchGrid {
 			}
 		}
 		
-		for(int i = 0; i < 20; i++){
-			maskGridPattern = fillTL(maskGridPattern);
-			maskGridPattern = fillTR(maskGridPattern);
-			maskGridPattern = fillBL(maskGridPattern);
-			maskGridPattern = fillBR(maskGridPattern);			
+		for(int i = 0; i < 30; i++){
+			ArrayList<Patch> candidates = new ArrayList<Patch>();
+
+			for(int x = 0; x < maskGridPattern.length; x++){
+				for(int y = 0; y < maskGridPattern[0].length; y++){
+					if(maskGridPattern[x][y]){	// It's a patch to be filled
+						candidates.add(findPatch(x, y, 1));
+					}
+				}
+			}
+			
+			double bestCandidateProb = 0.0;
+			Patch bestPatch = candidates.get(0);
+			for(Patch p : candidates){
+				if(p.probability > bestCandidateProb){
+					bestCandidateProb = p.probability;
+					bestPatch = p;
+				}
+			}
+			
+			System.out.println("Best probability is " + bestCandidateProb);
+			maskGridPattern[bestPatch.patchX][bestPatch.patchY] = false;
+			patches[bestPatch.patchX][bestPatch.patchY] = bestPatch;
+			
 		}
+		
 	}
 	
 	public boolean[][] fillTL(boolean[][] maskGrid){

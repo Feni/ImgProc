@@ -63,8 +63,10 @@ class Patch implements Comparable{
     BufferedImage pixels; 
     double brightness = 0.0;
     double probability = 1.0;	// 1.0 = 100% Sure about this patch. 0.0
-    
     boolean isMasked = false;
+    
+    int patchX;
+    int patchY;
     
     // = 7650
     static int MAX_EDGE_DIFF = (PatchGrid.WINDOW_SIZE) * (255 * 3);
@@ -74,9 +76,11 @@ class Patch implements Comparable{
     	brightness = p.brightness;
     	probability = p.probability;
     	isMasked = p.isMasked;
+    	patchX = p.patchX;
+    	patchY = p.patchY;
     }
     
-    public Patch(BufferedImage p){
+    public Patch(BufferedImage p, int px, int py){
     	pixels = p;
     	double divisor = p.getWidth() * p.getHeight();
 		for(int x = 0; x < p.getWidth(); x++){
@@ -86,6 +90,8 @@ class Patch implements Comparable{
 		    	brightness += (.2126 * c.getRed() + .7152 * c.getGreen() + .0722 * c.getBlue());
 		    }
 		}
+		patchX = px;
+		patchY = py;
     }
 
     public int compareTo(Object o){
@@ -142,7 +148,7 @@ class Patch implements Comparable{
     		if(totalDiff <= minDiff){
     			minDiff = totalDiff;
     			Patch newMinPatch = new Patch(p);
-    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			newMinPatch.probability = this.probability * (1.0 - ( (double) totalDiff / MAX_EDGE_DIFF));
     			minPatches.add(newMinPatch); 
     		}
     	}
@@ -165,7 +171,7 @@ class Patch implements Comparable{
     		if(totalDiff <= minDiff){
     			minDiff = totalDiff;
     			Patch newMinPatch = new Patch(p);
-    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			newMinPatch.probability = this.probability * (1.0 - ( (double) totalDiff / MAX_EDGE_DIFF));
     			minPatches.add(newMinPatch); 
     		}
     	}
@@ -188,7 +194,7 @@ class Patch implements Comparable{
     		if(totalDiff <= minDiff){
     			minDiff = totalDiff;
     			Patch newMinPatch = new Patch(p);
-    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			newMinPatch.probability = this.probability * (1.0 - ( (double) totalDiff / MAX_EDGE_DIFF));
     			minPatches.add(newMinPatch); 
     		}
     	}
@@ -198,7 +204,7 @@ class Patch implements Comparable{
     public ArrayList<Patch> getNextBelow(ArrayList<Patch> patches){
     	double minDiff = Double.MAX_VALUE;
     	ArrayList<Patch> minPatches = new ArrayList<Patch>();
-    	if(isMasked){return minPatches;}
+    	
     	int ourBase = this.pixels.getHeight() - 1;
     	for(Patch p : patches){
     		double totalDiff = 0;
@@ -210,7 +216,7 @@ class Patch implements Comparable{
     		if(totalDiff <= minDiff){
     			minDiff = totalDiff;
     			Patch newMinPatch = new Patch(p);
-    			newMinPatch.probability = 1.0 - ( (double) totalDiff / MAX_EDGE_DIFF);
+    			newMinPatch.probability = this.probability * (1.0 - ( (double) totalDiff / MAX_EDGE_DIFF));
     			minPatches.add(newMinPatch); 
     		}
     	}

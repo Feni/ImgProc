@@ -110,6 +110,7 @@ public class PatchDisplay extends JFrame implements Runnable{
 		originalImg.setIcon(new ImageIcon(imgGrid.getRenderedImage()));
 	}
 	
+	// Refresh the display every second. 
 	public void run(){
 		while(true){
 			updateImage();
@@ -123,27 +124,3 @@ public class PatchDisplay extends JFrame implements Runnable{
 	
 }
 
-class PatchSelector implements MouseListener{
-	PatchGrid imgGrid;
-	
-	public PatchSelector(PatchGrid grid){
-		imgGrid = grid;
-	}
-	
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		int x = arg0.getX();
-		int y = arg0.getY();
-		Patch selectedPatch = imgGrid.getPatchAt(x, y);
-		imgGrid.setSelectedPatch(selectedPatch);
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) {}
-	@Override
-	public void mouseExited(MouseEvent arg0) {	}
-	@Override
-	public void mousePressed(MouseEvent arg0) {}
-	@Override
-	public void mouseReleased(MouseEvent arg0) {}
-}

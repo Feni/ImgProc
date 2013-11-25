@@ -5,10 +5,10 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-
+// simon chelley - PDE , natural scene statistics, multi-scale, wavet based. 
 public class PatchGrid {
 	BufferedImage img;
-	public static final int WINDOW_SIZE = 10;
+	public static final int WINDOW_SIZE = 9;
 	Patch[][] patches;
 	Patch selectedPatch;
 	ArrayList<Patch> allPatches = new ArrayList<Patch>();
@@ -28,7 +28,7 @@ public class PatchGrid {
 			    Patch p = new Patch(subImage, x, y);
 			    
 			    if(previousPatch != null){
-			    	PatchConnection newCon = new PatchConnection(previousPatch, p, 0.9);
+			    	//PatchConnection newCon = new PatchConnection(previousPatch, p, 0.9);
 //			    	previousPatch.nextStates.add(newCon);
 			    }
 			    previousPatch = p;
@@ -66,26 +66,32 @@ public class PatchGrid {
 		return patches[subIndex][lineIndex];
 	}
 	
-	public BufferedImage getSemiImg(BufferedImage i, float transparency){
-		BufferedImage cloned = new BufferedImage(i.getWidth(), i.getHeight(), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = (Graphics2D) cloned.createGraphics();
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency);
-		g.setComposite(ac);
-		g.drawImage(i, 0, 0, null);
-		return cloned;
-	}
-	
 	public Patch findPatch(int patchX, int patchY, int deapth){
 		if(patches[patchX][patchY] != null && !patches[patchX][patchY].isMasked){
 			return patches[patchX][patchY];
 		}
 		
 		// What do each of the patches surrounding us suggest?
-		if(deapth > 0){
-			ArrayList<Patch> leftSuggestions = findPatch(patchX - 1, patchY, deapth - 1).getNextRight(allPatches);
-			ArrayList<Patch> rightSuggestions = findPatch(patchX + 1, patchY, deapth - 1).getNextLeft(allPatches);
-			ArrayList<Patch> topSuggestions = findPatch(patchX, patchY - 1, deapth - 1).getNextBelow(allPatches);
-			ArrayList<Patch> bottomSuggestions = findPatch(patchX, patchY + 1, deapth - 1).getNextAbove(allPatches);
+		if(deapth > 0 && patchX >= 0 && patchX < patches.length && patchY >= 0 && patchY < patches[0].length){
+			ArrayList<Patch> leftSuggestions = new ArrayList<Patch>();
+			ArrayList<Patch> rightSuggestions = new ArrayList<Patch>();
+			ArrayList<Patch> topSuggestions = new ArrayList<Patch>();
+			ArrayList<Patch> bottomSuggestions = new ArrayList<Patch>();
+			if(patchX - 1 >= 0){
+				leftSuggestions = findPatch(patchX - 1, patchY, deapth - 1).getNextRight(allPatches);
+			}
+				
+			if(patchX + 1 < patches.length){ 
+				rightSuggestions = findPatch(patchX + 1, patchY, deapth - 1).getNextLeft(allPatches);
+			}
+			
+			if(patchY -1 >= 0){
+				topSuggestions = findPatch(patchX, patchY - 1, deapth - 1).getNextBelow(allPatches);				
+			}
+			
+			if(patchY + 1 < patches[0].length){
+				bottomSuggestions = findPatch(patchX, patchY + 1, deapth - 1).getNextAbove(allPatches);	
+			}
 			
 			Patch left = null;
 			Patch right = null;
@@ -183,15 +189,37 @@ public class PatchGrid {
 			
 			
 			double newProb = 0.0;
-			if(left != null)
-				newProb += 0.25 * left.probability;
-			if(right!= null)
-				newProb += 0.25 * right.probability;
-			if(top != null)
-				newProb += 0.25 * top.probability;
-			if(bottom != null)
-				newProb += 0.25 * bottom.probability;
+			double partialProb = 0.0;
+			double totalProb = 0.0;
+			double divider = 0;
+			if(left != null){
+				partialProb += 0.25 * left.probability;
+				totalProb += left.probability;
+				divider+= 1;
+			}
+			if(right!= null){
+				partialProb += 0.25 * right.probability;
+				totalProb += right.probability;
+				divider+= 1;
+			}
+			if(top != null){
+				partialProb += 0.25 * top.probability;
+				totalProb += top.probability;
+				divider+= 1;
+			}
+			if(bottom != null){
+				partialProb += 0.25 * bottom.probability;
+				totalProb += bottom.probability;
+				divider+= 1;
+			}
 			
+			if(divider != 0){
+				//newProb = totalProb / divider;
+				//newProb = partialProb;
+				newProb = (totalProb + partialProb) / (divider * 2);
+			}else{
+				newProb = 0;
+			}
 
 			
 			Patch newPatch = new Patch(mergedPatch, patchX, patchY);
@@ -201,9 +229,14 @@ public class PatchGrid {
 			return newPatch;
 		}
 		else{
-			Patch p = new Patch(patches[patchX][patchY]);
-			p.probability = 0.0;
-			return p;
+			if(patchX >= 0 && patchX < patches.length && patchY >= 0 && patchY < patches[0].length){
+				Patch p = new Patch(patches[patchX][patchY]);
+				p.probability = 0.0;
+				return p;
+			}
+			else{
+				return null;
+			}
 		}
 	}
 	

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 // simon chelley - PDE , natural scene statistics, multi-scale, wavet based. 
 public class PatchGrid {
 	BufferedImage img;
-	public static final int WINDOW_SIZE = 9;
+	public static final int WINDOW_SIZE = 12;
 	Patch[][] patches;
 	Patch selectedPatch;
 	ArrayList<Patch> allPatches = new ArrayList<Patch>();
@@ -143,7 +143,6 @@ public class PatchGrid {
 						
 						if(right != null){
 							Color c = new Color(right.pixels.getRGB(x, y));
-
 							double rightWeight = (x / (double) WINDOW_SIZE);	// left most pixel =
 //							System.out.println("right weight " + rightWeight);							
 							rightWeight *= right.probability;

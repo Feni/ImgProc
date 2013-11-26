@@ -140,16 +140,39 @@ class Patch implements Comparable{
 		return -1;
     }
     
-    public int getColorDifference(int a, int b){
+    public double getColorDifference(int a, int b){
     	Color colorA = new Color(a);
     	Color colorB = new Color(b);
-		int rDiff = Math.abs(colorA.getRed() - colorB.getRed());
-		int gDiff = Math.abs(colorA.getGreen() - colorB.getGreen());
-		int bDiff = Math.abs(colorA.getBlue() - colorB.getBlue());
 		
-		int diff =rDiff + gDiff + bDiff;
+    	float[] colorATemp = {colorA.getRed(), colorA.getGreen(), colorA.getBlue()};
+    	float[] colorBTemp = {colorB.getRed(), colorB.getGreen(), colorB.getBlue()};
+		float[] hsbValA = Color.RGBtoHSB(colorA.getRed(), colorA.getGreen(), colorA.getBlue(), colorATemp);
+		float[] hsbValB = Color.RGBtoHSB(colorB.getRed(), colorB.getGreen(), colorB.getBlue(), colorBTemp);
+		
+		//int rDiff = Math.abs(colorA.getRed() - colorB.getRed());
+		//int gDiff = Math.abs(colorA.getGreen() - colorB.getGreen());
+		//int bDiff = Math.abs(colorA.getBlue() - colorB.getBlue());
+		
+		//int diff =rDiff + gDiff + bDiff;
+		
+		
+		double hDiff = Math.pow(hsbValA[0] - hsbValB[0],2);
+		double sDiff = Math.pow(hsbValA[1] - hsbValB[1],2);
+		double bDiff = Math.pow(hsbValA[2] - hsbValB[2],2);
+		
+		double diff = Math.sqrt(hDiff + sDiff + bDiff); 
+		//System.out.println("hsbVal A for " + colorA + " is " + hsbValA[0] + " , " + hsbValA[1] + " , " + hsbValA[2] + " diff is " + diff);
+		
 		return diff;
     }
+    
+    public double getDistanceTo(Patch p){
+    	double xDiff = Math.pow(p.patchX - patchX, 2);
+    	double yDiff = Math.pow(p.patchY - patchY, 2);
+    	return Math.sqrt(xDiff + yDiff);
+    }
+    
+    int MAX_RADIUS = 300;
     
     // Look along the right edge and find a list of patches
     // that best match up with that edge
@@ -160,7 +183,8 @@ class Patch implements Comparable{
     	int ourRight = this.pixels.getWidth() - 1;
     	
     	for(Patch p : patches){
-    		if(getColorDifference(avgColor.getRGB(), p.avgColor.getRed()) < COLOR_THRESH){
+    		if(getDistanceTo(p) < MAX_RADIUS &&
+    				getColorDifference(avgColor.getRGB(), p.avgColor.getRed()) < COLOR_THRESH){
 	    		double totalDiff = 0;
 	    		if(p != null && p.pixels != null){
 		    		for(int y = 0; y < pixels.getHeight(); y++){

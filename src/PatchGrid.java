@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // simon chelley - PDE , natural scene statistics, multi-scale, wavet based. 
 public class PatchGrid {
@@ -13,8 +14,11 @@ public class PatchGrid {
 	Patch selectedPatch;
 	ArrayList<Patch> allPatches = new ArrayList<Patch>();
 	
+	Pixel[][] imgPixels;
+	
 	public PatchGrid(BufferedImage i){
 		img = i;
+		imgPixels = new Pixel[i.getWidth()][i.getHeight()];
 		allPatches = new ArrayList<Patch>();
 		patches = new Patch[img.getWidth() / WINDOW_SIZE][img.getHeight() / WINDOW_SIZE];		
 		for(int y = 0; y + WINDOW_SIZE < img.getHeight(); y+=WINDOW_SIZE){
@@ -247,6 +251,23 @@ public class PatchGrid {
 	
 	public Patch getSelectedPatch(){
 		return selectedPatch;
+	}
+	
+	HashMap<Color, Pixel> pixels = new HashMap<Color, Pixel>();
+	
+	public void initMask(PatchGrid maskGrid){
+		for(int y = 0; y < img.getHeight(); y++){
+			for(int x = 0; x < img.getWidth(); x++){
+				Pixel p;
+				if(maskGrid.img.getRGB(x, y) == Color.WHITE.getRGB()){
+					System.out.println("Mask is true at " + x + " , " + y);
+					p = new UnknownPixel();
+				}else{	// not a mask. Known pixel
+					p = new KnownPixel(new Color(img.getRGB(x, y)));
+				}
+				imgPixels[x][y] = p;
+			}
+		}
 	}
 	
 	// Blanks out the patches at given locations

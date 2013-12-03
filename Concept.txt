@@ -1,7 +1,0 @@
-Nov 25
-New concept. 
-Input raw image (800x500). Input mask image (1 for isMask and 0 for notMask). 
-Create new resized images and respective masks. 
-imgMed = 400x250
-imgSmall = 200x125
-

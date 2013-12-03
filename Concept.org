@@ -1,0 +1,31 @@
+Paper summary
+* Equations
+** Texture Synthesis Term
+*** 
+* Initialization
+** Fill mask region with texture synthesis term
+* My concept (we're going to work on gray scale for now)
+** Initialize a massive lookup table. 
+Patch[grey_level][dx + 1][dy + 1] where dx = 0 means -1 (to left). dx = 2 is actually +1 (to right). 
+These are all of the patches with the given grey level (or some grey level within a threshold, if you want to minimize memory)
+
+** PatchGrid 
+*** contains image
+*** a variable for scale. (for future use). 
+*** A lookup table [x][y] for each pixel. 
+** Pixel
+*** Pixel value - null if mask
+*** Confidence - between 0 and 1
+*** isKnown function. Returns true or false. 
+*** KnownPixelValue
+**** Color value of the given pixel. (int)
+*** UnknownPixelValue
+**** ArrayList of suggestions. (Pixel. With set confidence)
+
+** Patch 
+*** contains a pointer to the respective PatchGrid it belongs to. 
+*** It contains imageX and imageY where the given value's centered at. 
+
+Can this be applied to difference images for more matches (due to lower entropy)? Will that really be better?
+In case of multiple patch matches with equal probability, pick the patch that's CLOSEST in distance. 
+

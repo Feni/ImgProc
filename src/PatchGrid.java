@@ -5,40 +5,47 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import Markov.Coordinate;
+import Markov.MarkovRandomField;
+import Markov.Node;
 
 // simon chelley - PDE , natural scene statistics, multi-scale, wavet based. 
 public class PatchGrid {
 	BufferedImage img;
-	public static final int WINDOW_SIZE = 12;
-	Patch[][] patches;
-	Patch selectedPatch;
-	ArrayList<Patch> allPatches = new ArrayList<Patch>();
+	public static final int WINDOW_SIZE = 16;
 	
-	Pixel[][] imgPixels;
+	MarkovRandomField<Patch> mrf;
 	
-	public PatchGrid(BufferedImage i){
+//	Patch[][] patches;
+//	Patch selectedPatch;
+//	ArrayList<Patch> allPatches = new ArrayList<Patch>();
+//	Pixel[][] imgPixels;
+	
+	public PatchGrid(BufferedImage i, BufferedImage mask){
 		img = i;
-		imgPixels = new Pixel[i.getWidth()][i.getHeight()];
-		allPatches = new ArrayList<Patch>();
-		patches = new Patch[img.getWidth() / WINDOW_SIZE][img.getHeight() / WINDOW_SIZE];		
+		//imgPixels = new Pixel[i.getWidth()][i.getHeight()];
+		//allPatches = new ArrayList<Patch>();
+		mrf = new MarkovRandomField<Patch>( (int) Math.floor(img.getWidth() / (double) WINDOW_SIZE), (int) Math.floor( (double) img.getHeight() / WINDOW_SIZE));
+		
+		System.out.println("Creating markov random field");
 		for(int y = 0; y + WINDOW_SIZE < img.getHeight(); y+=WINDOW_SIZE){
-			//ArrayList<Patch> currentRow = new ArrayList<Patch>();
-			Patch previousPatch = null;
 			int patchY = (int) y / WINDOW_SIZE;
 			for(int x = 0; x + WINDOW_SIZE < img.getWidth(); x+=WINDOW_SIZE){
 				int patchX = (int) x / WINDOW_SIZE;
-				
-			    BufferedImage subImage = img.getSubimage(x, y, (int) WINDOW_SIZE, (int) WINDOW_SIZE);
-			    Patch p = new Patch(subImage, x, y);
-			    
-			    if(previousPatch != null){
-			    	//PatchConnection newCon = new PatchConnection(previousPatch, p, 0.9);
-//			    	previousPatch.nextStates.add(newCon);
+			    BufferedImage subMask = mask.getSubimage(x, y, (int) WINDOW_SIZE, (int) WINDOW_SIZE);
+			    if(Patch.isMask(subMask)){
+		//	    	System.out.println("Unknown node at " + x + " , " + y);
+			    	mrf.add(mrf.newUnknown(patchX, patchY), patchX, patchY);
+			    }else{
+				    BufferedImage subImage = img.getSubimage(x, y, (int) WINDOW_SIZE, (int) WINDOW_SIZE);
+				    Patch p = new Patch(subImage, x, y);
+			    	mrf.add(mrf.newNode(p, patchX, patchY), patchX, patchY);
 			    }
-			    previousPatch = p;
-			    allPatches.add(p);
-			    patches[patchX][patchY] = p;
 			}
+//	    	System.out.println("At line " + y);
 		}		
 	}
 	
@@ -47,23 +54,28 @@ public class PatchGrid {
 		//return getRenderedImage();
 	}
 	
+	public void solve(){
+		mrf.solve(150);
+	}
+	
 	public BufferedImage getRenderedImage(){
 		BufferedImage imgBuffer = new BufferedImage(img.getWidth(), img.getHeight(),
 		                    BufferedImage.TYPE_INT_ARGB);
 		Graphics g = imgBuffer.createGraphics();
 		
-		for(int x = 0; x < patches.length; x++){
-			for(int y = 0; y < patches[0].length; y++){
-				if(patches[x][y] != null){
-					g.drawImage(patches[x][y].pixels, x * WINDOW_SIZE, y*WINDOW_SIZE, null);					
-				}else{
-					//System.out.println("Render at " + x + " , " + y + " is null");
-				}
-			}
+		TreeMap<Coordinate, Node<Patch>> sequence = mrf.getSequence();
+		
+		for(Entry<Coordinate, Node<Patch>> pt : sequence.entrySet()){
+			int[] coord = pt.getKey().getCoords();
+			Node<Patch> node = pt.getValue();
+			Patch patch = node.getValue(coord); 
+			BufferedImage pixels = patch == null ? new BufferedImage(PatchGrid.WINDOW_SIZE, PatchGrid.WINDOW_SIZE, BufferedImage.TYPE_INT_ARGB) : patch.pixels; 
+			g.drawImage(pixels, coord[0] * WINDOW_SIZE, coord[1]*WINDOW_SIZE, null);
 		}
 		return imgBuffer;
 	}
-	
+
+	/*
 	public Patch getPatchAt(int rawX, int rawY){
 		int lineIndex = (int) Math.ceil( rawY  / PatchGrid.WINDOW_SIZE );
 		int subIndex = (int) (rawX / WINDOW_SIZE);		
@@ -335,6 +347,6 @@ public class PatchGrid {
 			
 		}
 		
-	}
+	} */
 	
 }

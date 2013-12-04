@@ -1,6 +1,8 @@
 package Markov;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class MarkovRandomField<T> {
 	public int DIMENSIONS;	// 1-D, 2-D, etc.
@@ -8,11 +10,11 @@ public class MarkovRandomField<T> {
 	
 	// We have one specific MarkovNode for each discrete value of T that can appear. 
 	// i.e. only one MarkovNode to represent all "Hello" nodes. 
-	HashMap<T, Node<T>> nodes = new HashMap<T, Node<T>>();
+	TreeMap<T, KnownNode<T>> nodes = new TreeMap<T, KnownNode<T>>();
 	// Keeps track of all of the unknown variables
 	ArrayList<Coordinate> unknowns = new ArrayList<Coordinate>();
 	// Keeps track of where each node is located in the image/sequence
-	HashMap<Coordinate, Node<T>> sequence = new HashMap<Coordinate, Node<T>>();
+	TreeMap<Coordinate, Node<T>> sequence = new TreeMap<Coordinate, Node<T>>();
 	
 	double totalConfidence = 0;	// maximize this. Only counted for unknown guesses
 	
@@ -27,17 +29,19 @@ public class MarkovRandomField<T> {
 			currentPos[i] = 0;
 	}
 	
-	public Node<T> newNode(T val){
-		Node<T> n = nodes.get(val);
+	public Node<T> newNode(T val, int... coords){
+		KnownNode<T> n = nodes.get(val);
 		if(n == null){						// Node doesn't exist yet. Create it. 
-			n = new KnownNode<T>(val);
+			n = new KnownNode<T>(new Coordinate(coords), val);
 			nodes.put(val, n);
+		}else{
+			n.addSimilar(new Coordinate(coords), val);
 		}
 		return n;
 	}
 	
-	public UnknownNode<T> newUnknown(){
-		return new UnknownNode<T>();
+	public UnknownNode<T> newUnknown(int... coords){
+		return new UnknownNode<T>(new Coordinate(coords));
 	}
 	
 	public int[] diff(int[] a, int[] b){
@@ -49,29 +53,59 @@ public class MarkovRandomField<T> {
 	}
 	
 	public void add(Node<T> newNode){
-		Coordinate newNodeCoord = new Coordinate(currentPos.clone());
-		
+		add(newNode, currentPos);		
+		incPos();
+	}
+	
+	public void add(Node<T> newNode, int... coordinates){
+		Coordinate newNodeCoord = new Coordinate(coordinates.clone());
 		// Keep track of how many nodes we have to solve for
 		if(newNode instanceof UnknownNode){
 			unknowns.add(newNodeCoord);
 		}
 		
+		// Just assume 2D...
+		ArrayList<Coordinate> neighbors = new ArrayList<Coordinate>();
+		if(newNodeCoord.coords.length == 2){
+			Coordinate tl = new Coordinate(newNodeCoord.coords[0] - 1, newNodeCoord.coords[1] - 1);
+			if(sequence.containsKey(tl)){ // top left
+				neighbors.add(tl);
+			}
+			Coordinate t = new Coordinate(newNodeCoord.coords[0], newNodeCoord.coords[1] - 1);
+			if(sequence.containsKey(t)){ // directly above
+				neighbors.add(t);
+			}
+			Coordinate tr = new Coordinate(newNodeCoord.coords[0] + 1, newNodeCoord.coords[1] - 1);
+			if(sequence.containsKey(tr)){ // top right
+				neighbors.add(tr);
+			}
+			Coordinate l = new Coordinate(newNodeCoord.coords[0] - 1, newNodeCoord.coords[1]);	// left
+			if(sequence.containsKey(l)){
+				neighbors.add(l);
+			}
+			
+			//System.out.println("Valid neighbors: " + neighbors.size());
+		}else{
+			neighbors = new ArrayList<Coordinate>(sequence.keySet());
+		}
+		
+		/*
 		// Relate it to all existing nodes
 		// TODO: Only do this for nodes at a certain distance from currentNode
-			
-			for(Coordinate coord: sequence.keySet()){
-				//sequence.get(coord).addConnection(newNode, newNode instanceof KnownMarkovNode ? 1.0f : 0.0f, );
-				Node<T> n = sequence.get(coord);
-				int[] distance = diff(currentPos, coord.coords);
-				int[] revDistance = Node.distanceBack(distance);
-				n.addConnection(newNode, 1.0f, distance);
-				newNode.addConnection(n, 1.0f, revDistance);
-			}
+		// Coordinate coord: sequence.keySet()
+		 * */
+		for(Coordinate coord: neighbors){
+			//	sequence.get(coord).addConnection(newNode, newNode instanceof KnownMarkovNode ? 1.0f : 0.0f, );
+			Node<T> n = sequence.get(coord);
+			int[] distance = diff(currentPos, coord.coords);
+			int[] revDistance = Node.distanceBack(distance);
+			n.addConnection(newNode, 1.0f, distance);
+			newNode.addConnection(n, 1.0f, revDistance);
+		}
 		
 		// THEN add it (so that it doesn't get connected with itself)
 		sequence.put(newNodeCoord, newNode);
-		
-		incPos();
+//		System.out.println("PUt the sequene in new node coord " + newNodeCoord + " got " + coordinates + " " + sequence.get(new Coordinate(coordinates)));
 	}
 	
 	// Increment position, carrying over based on size. 
@@ -86,18 +120,19 @@ public class MarkovRandomField<T> {
 		}		
 	}
 	
-	public void solve(){
+	public void solve(int iterations){
 		for(Coordinate coord: unknowns){
 			UnknownNode<T> unk = (UnknownNode<T>) sequence.get(coord);
 			unk.initializeIdentity();
+			System.out.println("Unknown's initial state is " + unk.baseTotal + " : " + unk.baseVotes);
 		}
 		
-		for(int i = 0; i < 10; i++){
+		for(int i = 0; i < iterations; i++){
 			System.out.println("Identity crisis version : " + i);
 			boolean changed = false;
 			for(Coordinate coord: unknowns){
 				UnknownNode<T> unk = (UnknownNode<T>) sequence.get(coord);
-				changed = changed || unk.decideIdentity();
+				changed = unk.decideIdentity() || changed;
 			}
 			for(Coordinate coord: unknowns){
 				UnknownNode<T> unk = (UnknownNode<T>) sequence.get(coord);
@@ -107,9 +142,21 @@ public class MarkovRandomField<T> {
 			// We've reached a steady state
 			if(!changed){
 				System.out.println("Early termination at steady state");
-				break;
+				//break;
 			}
+			
+			
+			try{
+				Thread.sleep(1000);
+			}catch(Exception e){}
 		}
 	}
 	
+	public void solve(){
+		solve(10);
+	}
+	
+	public TreeMap<Coordinate, Node<T>> getSequence(){
+		return sequence;
+	}
 }

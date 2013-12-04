@@ -21,23 +21,24 @@ public class MarkovPainter{
 	
 	public static void main(String args[]){
 		   try{
+			   
 			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sand.jpg"));
-			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMed.jpg"));
-			   BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_scaled.jpg"));
-			   PatchGrid imgGrid = new PatchGrid(rawImg);
-			   
 			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMask.png"));
-			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMaskMed.png"));
-			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));
-			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask.jpg"));
-			   PatchGrid maskGrid = new PatchGrid(maskImg);
 			   
-			   imgGrid.initMask(maskGrid);
+			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMed.jpg"));
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMaskMed.png"));
+			   			   
+			   BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_scaled.jpg"));
+			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask.jpg"));
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));			   
+			   
+			   PatchGrid imgGrid = new PatchGrid(rawImg, maskImg);
 			   
 			   PatchDisplay display = new PatchDisplay(imgGrid);
 			   
-			   imgGrid.applyMask(maskGrid);
-			   imgGrid.fillMask(maskGrid);
+			   //imgGrid.applyMask(maskGrid);
+			   //imgGrid.fillMask(maskGrid);
+			   imgGrid.solve();
 			   
 			   System.out.println("Done initializing Markov Painter");
 			   while(true){}

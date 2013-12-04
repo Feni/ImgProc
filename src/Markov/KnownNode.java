@@ -1,12 +1,15 @@
 package Markov;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
 
 public class KnownNode<T> extends Node<T>{
-	T value;
+	//T value;
+	
+	HashMap<Coordinate, T> values = new HashMap<Coordinate, T>();
 	
 	// Keep a count of how many times we see a particular node at a particular distance 
 	TreeMap<Coordinate, HashMap<KnownNode<T>, Float>> atOffset = new TreeMap<Coordinate, HashMap<KnownNode<T>, Float>>();
@@ -14,8 +17,13 @@ public class KnownNode<T> extends Node<T>{
 	// Keep track of the sum at each location for convenience when calculating normalized probability from atOffset
 	TreeMap<Coordinate, Double> locationProbSum = new TreeMap<Coordinate, Double>();	
 	
-	public KnownNode(T val){
-		value = val;
+	public KnownNode(Coordinate c, T val){
+		//value = val;
+		addSimilar(c, val);
+	}
+	
+	public void addSimilar(Coordinate c, T val){
+		values.put(c, val);
 	}
 	
 	// Observe that node is distance from 'this' with given weight (generally 1)
@@ -55,7 +63,24 @@ public class KnownNode<T> extends Node<T>{
 	}
 	
 	public String toString(){
-		return "<" + value.toString() + ">"; 
+		return "<" + values + ">"; 
+	}
+	
+	
+	
+	public T getValue(int... coords){
+		Coordinate relative = new Coordinate(coords);
+		//return value;
+		double minDistance = Double.MAX_VALUE;
+		T minVal = null;
+		for(Entry<Coordinate, T> e : values.entrySet()){
+			double eDistance =  relative.distanceSq(e.getKey());
+			if(eDistance < minDistance){
+				minDistance = eDistance;
+				minVal = e.getValue();
+			}
+		}
+		return minVal;
 	}
 	
 	

@@ -11,5 +11,6 @@ public abstract class Node<T> {
 	}	
 	
 	public abstract void addConnection(Node<T> node, float weight, int... distance);
-			
+		
+	public abstract T getValue(int... coords);
 }

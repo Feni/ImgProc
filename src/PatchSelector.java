@@ -12,8 +12,8 @@ public class PatchSelector implements MouseListener{
 	public void mouseClicked(MouseEvent arg0) {
 		int x = arg0.getX();
 		int y = arg0.getY();
-		Patch selectedPatch = imgGrid.getPatchAt(x, y);
-		imgGrid.setSelectedPatch(selectedPatch);
+//		Patch selectedPatch = imgGrid.getPatchAt(x, y);
+//		imgGrid.setSelectedPatch(selectedPatch);
 	}
 
 	@Override

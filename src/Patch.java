@@ -2,7 +2,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-class Patch implements Comparable{
+class Patch implements Comparable<Patch>{
     BufferedImage pixels; 
     double brightness = 0.0;
     double probability = 1.0;	// 1.0 = 100% Sure about this patch. 0.0
@@ -16,7 +16,7 @@ class Patch implements Comparable{
     Color avgColor = Color.white;
     
     //static int COLOR_THRESH = 512;
-    static int COLOR_THRESH = 512;
+    static int COLOR_THRESH = 32;
     static double PROB_THRESH = 0.35;
     
     ArrayList<PatchConnection> nextStates = new ArrayList<PatchConnection>();
@@ -45,6 +45,10 @@ class Patch implements Comparable{
     	}
     }
     
+    public Patch(){
+    	pixels = new BufferedImage(PatchGrid.WINDOW_SIZE, PatchGrid.WINDOW_SIZE, BufferedImage.TYPE_INT_ARGB);    	
+    }
+    
     public Patch(BufferedImage p, int px, int py){
     	pixels = p;
     	int rSum = 0;
@@ -66,10 +70,17 @@ class Patch implements Comparable{
 		avgColor = new Color(rSum / divisor, gSum/divisor, bSum / divisor );
     }
     
-    public void findSimilarPatches(ArrayList<Patch> allPatches){
-    	
-    }
-    
+	public static boolean isMask(BufferedImage patch){
+		for(int x = 0; x < patch.getWidth(); x++){
+			for(int y = 0; y < patch.getHeight(); y++){
+				if(patch.getRGB(x, y) != Color.black.getRGB()){	// Any non-zero patch is a mask
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+       
     public void computeNextStates(Patch[][] patches, int radius){
     	/*
         BufferedImage flipped = new BufferedImage(
@@ -110,33 +121,30 @@ class Patch implements Comparable{
     	
     }
 
-    public int compareTo(Object o){
-		if(o instanceof Patch){
-		    Patch p = (Patch) o;
-		    int total_color_err = 0;
-		    double p_brightness = 0;
-		    
-		    int oVariance = 0;
-		    int oSum = 0;
-		    int oSum_sqr = 0;		    
-		    
-		    for(int x = 0; x < p.pixels.getWidth(); x++){
-				for(int y = 0; y < p.pixels.getHeight(); y++){
-				    p_brightness += p.pixels.getRGB(x, y);
-				    //MSE += Math.pow( (double) pixels.getRGB(x, y) - p.pixels.getRGB(x, y), 2.0);
-				    total_color_err += getColorDifference(pixels.getRGB(x, y), p.pixels.getRGB(x, y));			    
-				}
-		    }
-		    
-		    //total_color_err /= (p.pixels.getWidth() * p.pixels.getHeight());
-		    System.out.println("Patch difference of " + total_color_err + " self-brighness " + brightness + " other " + p_brightness );
-	
-		    if(total_color_err < COLOR_THRESH * (p.pixels.getWidth() * p.pixels.getHeight())){
-		    	return 0;
-		    }else if(brightness > p_brightness){
-		    	return 1;
-		    }
-		}
+    public int compareTo(Patch p){
+	    int total_color_err = 0;
+	    double p_brightness = 0;
+	    
+	    int oVariance = 0;
+	    int oSum = 0;
+	    int oSum_sqr = 0;		    
+	    
+	    for(int x = 0; x < p.pixels.getWidth(); x++){
+			for(int y = 0; y < p.pixels.getHeight(); y++){
+			    p_brightness += p.pixels.getRGB(x, y);
+			    //MSE += Math.pow( (double) pixels.getRGB(x, y) - p.pixels.getRGB(x, y), 2.0);
+			    total_color_err += getColorDifference(pixels.getRGB(x, y), p.pixels.getRGB(x, y));			    
+			}
+	    }
+	    
+	    //total_color_err /= (p.pixels.getWidth() * p.pixels.getHeight());
+	    //System.out.println("Patch difference of " + total_color_err + " self-brighness " + brightness + " other " + p_brightness );
+	    if(total_color_err < COLOR_THRESH * (p.pixels.getWidth() * p.pixels.getHeight())){
+	    	//System.out.println("Patches are equal! "+total_color_err);
+	    	return 0;
+	    }else if(brightness > p_brightness){
+	    	return 1;
+	    }
 		return -1;
     }
     
@@ -149,18 +157,18 @@ class Patch implements Comparable{
 		float[] hsbValA = Color.RGBtoHSB(colorA.getRed(), colorA.getGreen(), colorA.getBlue(), colorATemp);
 		float[] hsbValB = Color.RGBtoHSB(colorB.getRed(), colorB.getGreen(), colorB.getBlue(), colorBTemp);
 		
-		//int rDiff = Math.abs(colorA.getRed() - colorB.getRed());
-		//int gDiff = Math.abs(colorA.getGreen() - colorB.getGreen());
-		//int bDiff = Math.abs(colorA.getBlue() - colorB.getBlue());
+		int rDiff = Math.abs(colorA.getRed() - colorB.getRed());
+		int gDiff = Math.abs(colorA.getGreen() - colorB.getGreen());
+		int bDiff = Math.abs(colorA.getBlue() - colorB.getBlue());
 		
-		//int diff =rDiff + gDiff + bDiff;
+		int diff =rDiff + gDiff + bDiff;
 		
 		
-		double hDiff = Math.pow(hsbValA[0] - hsbValB[0],2);
+		/*double hDiff = Math.pow(hsbValA[0] - hsbValB[0],2);
 		double sDiff = Math.pow(hsbValA[1] - hsbValB[1],2);
 		double bDiff = Math.pow(hsbValA[2] - hsbValB[2],2);
 		
-		double diff = Math.sqrt(hDiff + sDiff + bDiff); 
+		double diff = Math.sqrt(hDiff + sDiff + bDiff); */ 
 		//System.out.println("hsbVal A for " + colorA + " is " + hsbValA[0] + " , " + hsbValA[1] + " , " + hsbValA[2] + " diff is " + diff);
 		
 		return diff;
@@ -281,14 +289,3 @@ class Patch implements Comparable{
     }    
 }
 
-/*
- * Step one - break the image up into a grid of patches
- * For each patch, compute the patches that can come on the left, right, top and bottom
- * The easy answer is the current next patch is a valid next state. 
- * Secondly, the image self flipped over is a valid next state
- * Then, loop through all images and use our border-alignment check with a high threshold. 
- * For each of the patch, compute the list of patches which are most similar to it.
- * Propagate the errors through. The probability should exist outside the node, in the link. This way the same node can be used in multiple places.
- * 
- * 
- */

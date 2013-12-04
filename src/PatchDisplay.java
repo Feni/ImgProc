@@ -80,6 +80,7 @@ public class PatchDisplay extends JFrame implements Runnable{
  	  	new Thread(this).start();
 	}
 	
+	/*
 	public static void updateSelection(Patch newSelected, Patch[] patchList){
 		if(selectedIcon != null && controlPanel != null){
 			selectedIcon.setImage(newSelected.pixels.getScaledInstance(50, 50, 0));
@@ -98,13 +99,10 @@ public class PatchDisplay extends JFrame implements Runnable{
 				i++;
 			}
 			nextStates.setModel(listModel);
-			
-			/*if(nextStatesPanel != null){
-				
-			}*/
+
 			selectedIconDisplay.repaint();
 		}
-	}
+	} */
 	
 	public void updateImage(){
 		originalImg.setIcon(new ImageIcon(imgGrid.getRenderedImage()));

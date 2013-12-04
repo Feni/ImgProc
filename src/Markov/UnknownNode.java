@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 public class UnknownNode<T> extends Node<T>{
 	
 	// Number of 'votes' that this node is to be some particular value
-	//HashMap<KnownMarkovNode<T>, Float> isNode = new HashMap<KnownMarkovNode<T>, Float>();
+	// HashMap<KnownMarkovNode<T>, Float> isNode = new HashMap<KnownMarkovNode<T>, Float>();
 	
 	HashMap<Coordinate, KnownNode<T>> knownNeighbors = new HashMap<Coordinate, KnownNode<T>>();
 	HashMap<Coordinate, UnknownNode<T>> unkNeighbors = new HashMap<Coordinate, UnknownNode<T>>();	
@@ -25,22 +25,34 @@ public class UnknownNode<T> extends Node<T>{
 	
 	int id;
 	static int MAX_ID = 0;
+
+	Coordinate unkCoordinate; 
 	
-	public UnknownNode(){
+	public UnknownNode(Coordinate coord){
 		id = MAX_ID++;
+		unkCoordinate = coord;
 	}
 	
 	public String toString(){
 		return "?<"+id+">"; 
 	}
-	
-	KnownNode<T> currentState;
-	float currentStateConfidence = 0.0f;
-	
-	
-	public void addSuggestions(HashMap<KnownNode<T>, Float> possibilities, float weight){
+		
+	public void addSuggestions(HashMap<KnownNode<T>, Float> possibilities, Coordinate dist, float weight){
+//		System.out.println("Distance from suggesstee is " + unkCoordinate + " , " + dist + " : " + unkCoordinate.distance(dist));
+		//System.out.println("Distance from suggesstee is " + dist.distance() + " : " + dist);
+		float weightShift = (float) (1/ dist.distance());
+		//System.out.println("Distance Weight is " + weightShift);
+		weight = (float) weight * weightShift;
+		//System.out.println("Weight is " + weight);
+		
+		double possibilitiesSum = 0.0;
+		for(Float f : possibilities.values()){
+			possibilitiesSum += f;
+		}
+		
 		for(Entry<KnownNode<T>, Float> possibleEntry : possibilities.entrySet() ){
-			float possibilityWeight = (possibleEntry.getValue() / weight);
+			float possibilityWeight = (float) ((possibleEntry.getValue() / possibilitiesSum ) * weight);
+			//System.out.println("Vote for possibility " + possibleEntry.getKey() + " is " + possibilityWeight);
 			totalVotes += possibilityWeight;
 			if(votes.containsKey(possibleEntry.getKey())){	// Add to existing votes
 				votes.put(possibleEntry.getKey(), votes.get(possibleEntry.getKey()) + possibilityWeight );
@@ -66,7 +78,7 @@ public class UnknownNode<T> extends Node<T>{
 		currentIdentity = maxIdentity;
 		currentWeight = maxWeight / totalVotes;
 		
-		System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
+		//System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
 		
 		// Reset votes to get ready for next iteration
 		votes = new HashMap<KnownNode<T>, Float>(baseVotes);
@@ -80,7 +92,7 @@ public class UnknownNode<T> extends Node<T>{
 		if(currentIdentity != null){
 			for(Entry<Coordinate, UnknownNode<T>> uNeighbor : unkNeighbors.entrySet() ){
 				if(currentIdentity.atOffset.containsKey(uNeighbor.getKey())){
-					uNeighbor.getValue().addSuggestions(currentIdentity.atOffset.get(uNeighbor.getKey()), (float) currentWeight);
+					uNeighbor.getValue().addSuggestions(currentIdentity.atOffset.get(uNeighbor.getKey()), uNeighbor.getKey(), (float) currentWeight);
 				}
 			}
 		}
@@ -88,14 +100,15 @@ public class UnknownNode<T> extends Node<T>{
 	
 	
 	public void initializeIdentity(){
+		System.out.println("known neighbors are " + knownNeighbors.size() + " unk " + unkNeighbors.size());
 		// What does the known neighbors think this node should be?
 		for(Entry<Coordinate, KnownNode<T>> kNeighbor : knownNeighbors.entrySet() )
 		{
 			Coordinate dBack = new Coordinate(distanceBack(kNeighbor.getKey().coords));
 			HashMap<KnownNode<T>, Float> kSuggestion =kNeighbor.getValue().atOffset.get( dBack );
-			System.out.println(""+kNeighbor.getValue() + " suggestion at " + dBack + " is " + kSuggestion);
+			//System.out.println(""+kNeighbor.getValue() + " suggestion at " + dBack + " is " + kSuggestion);
 			if(kSuggestion != null)
-				addSuggestions(kSuggestion, 1.0f  );
+				addSuggestions(kSuggestion, dBack, 1.0f  );
 		}		
 		
 		baseVotes = new HashMap<KnownNode<T>, Float>(votes);
@@ -107,6 +120,15 @@ public class UnknownNode<T> extends Node<T>{
 			knownNeighbors.put(new Coordinate(distance), (KnownNode<T>)node);
 		}else{
 			unkNeighbors.put(new Coordinate(distance), (UnknownNode<T>) node);
+		}
+	}
+	
+	public T getValue(int... coords){
+		if(currentIdentity != null){
+			return currentIdentity.getValue(coords);
+		}
+		else{
+			return null;
 		}
 	}
 

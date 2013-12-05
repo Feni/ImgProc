@@ -28,9 +28,22 @@ public class MarkovPainter{
 			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMed.jpg"));
 			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMaskMed.png"));
 			   			   
-			   BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_scaled.jpg"));
+			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_scaled.jpg"));
 			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask.jpg"));
-			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));			   
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));
+			   
+			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/inthewayguy1.jpg"));
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/inthewayguy1mask.png"));
+
+			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/bubblegirl.jpg"));
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/bubblegirlmask.png"));			   
+
+			   BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/tokyo.jpg"));
+			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/tokyomask.png"));			   
+
+			   //BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/garden.jpg"));
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/gardenmask.png"));			   
+			   
 			   
 			   PatchGrid imgGrid = new PatchGrid(rawImg, maskImg);
 			   

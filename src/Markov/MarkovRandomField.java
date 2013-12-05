@@ -156,19 +156,19 @@ public class MarkovRandomField<T> {
 			}
 			
 			// We've reached a steady state
-			if(!changed){
+			if(!changed && i !=0){
 				System.out.println("Early termination at steady state");
-				//break;
+				break;
 			}
 			
-			try{
-				Thread.sleep(1000);
-			}catch(Exception e){}
+			//try{
+//				Thread.sleep(1000);
+//			}catch(Exception e){}
 		}
 	}
 	
 	public void solve(){
-		solve(10);
+		solve(250);
 	}
 	
 	public TreeMap<Coordinate, Node<T>> getSequence(){

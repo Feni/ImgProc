@@ -83,11 +83,21 @@ public class MarkovRandomField<T> {
 			if(sequence.containsKey(l)){
 				neighbors.add(l);
 			}
+			Coordinate t2 = new Coordinate(newNodeCoord.coords[0], newNodeCoord.coords[1] - 2);
+			if(sequence.containsKey(t2)){ // directly above
+				neighbors.add(t2);
+			}
+			Coordinate l2 = new Coordinate(newNodeCoord.coords[0] - 2, newNodeCoord.coords[1]);	// left
+			if(sequence.containsKey(l2)){
+				neighbors.add(l2);
+			}
+			
 			
 			//System.out.println("Valid neighbors: " + neighbors.size());
 		}else{
 			neighbors = new ArrayList<Coordinate>(sequence.keySet());
 		}
+		
 		
 		/*
 		// Relate it to all existing nodes
@@ -145,10 +155,9 @@ public class MarkovRandomField<T> {
 				//break;
 			}
 			
-			
-			try{
-				Thread.sleep(1000);
-			}catch(Exception e){}
+//			try{
+//				Thread.sleep(1000);
+//			}catch(Exception e){}
 		}
 	}
 	

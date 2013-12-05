@@ -5,11 +5,13 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import javax.sound.midi.Patch;
+
 
 public class KnownNode<T> extends Node<T>{
 	//T value;
 	
-	HashMap<Coordinate, T> values = new HashMap<Coordinate, T>();
+	TreeMap<Coordinate, T> values = new TreeMap<Coordinate, T>();
 	
 	// Keep a count of how many times we see a particular node at a particular distance 
 	TreeMap<Coordinate, HashMap<KnownNode<T>, Float>> atOffset = new TreeMap<Coordinate, HashMap<KnownNode<T>, Float>>();
@@ -81,6 +83,8 @@ public class KnownNode<T> extends Node<T>{
 			}
 		}
 		return minVal;
+		
+		
 	}
 	
 	

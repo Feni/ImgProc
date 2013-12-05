@@ -1,6 +1,7 @@
 package Markov;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 public class UnknownNode<T> extends Node<T>{
@@ -8,8 +9,8 @@ public class UnknownNode<T> extends Node<T>{
 	// Number of 'votes' that this node is to be some particular value
 	// HashMap<KnownMarkovNode<T>, Float> isNode = new HashMap<KnownMarkovNode<T>, Float>();
 	
-	HashMap<Coordinate, KnownNode<T>> knownNeighbors = new HashMap<Coordinate, KnownNode<T>>();
-	HashMap<Coordinate, UnknownNode<T>> unkNeighbors = new HashMap<Coordinate, UnknownNode<T>>();	
+	TreeMap<Coordinate, KnownNode<T>> knownNeighbors = new TreeMap<Coordinate, KnownNode<T>>();
+	TreeMap<Coordinate, UnknownNode<T>> unkNeighbors = new TreeMap<Coordinate, UnknownNode<T>>();	
 	
 	//HashMap<UnknownMarkovNode<T>, MarkovCoordinate> unkNeighbors = new HashMap<UnknownMarkovNode<T>, MarkovCoordinate>();
 	int currentIteration = 0;
@@ -75,10 +76,16 @@ public class UnknownNode<T> extends Node<T>{
 		
 		boolean changed = currentIdentity != maxIdentity || Math.abs(currentWeight - (maxWeight / totalVotes)) > 0.001;
 		
+		if(currentIdentity == null || currentWeight == Double.NaN){
+			System.out.println("Unknown unknowon's max identity is " + currentIdentity + " with votes " + currentWeight);
+		}		
+		
+		
+		
 		currentIdentity = maxIdentity;
 		currentWeight = maxWeight / totalVotes;
 		
-		System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
+		//System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
 		
 		// Reset votes to get ready for next iteration
 		votes = new HashMap<KnownNode<T>, Float>(baseVotes);

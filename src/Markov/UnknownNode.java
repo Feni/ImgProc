@@ -40,9 +40,9 @@ public class UnknownNode<T> extends Node<T>{
 	public void addSuggestions(HashMap<KnownNode<T>, Float> possibilities, Coordinate dist, float weight){
 //		System.out.println("Distance from suggesstee is " + unkCoordinate + " , " + dist + " : " + unkCoordinate.distance(dist));
 		//System.out.println("Distance from suggesstee is " + dist.distance() + " : " + dist);
-		float weightShift = (float) (1/ dist.distance());
+//		float weightShift = (float) (1/ dist.distance());
 		//System.out.println("Distance Weight is " + weightShift);
-		weight = (float) weight * weightShift;
+//		weight = (float) weight * weightShift;
 		//System.out.println("Weight is " + weight);
 		
 		double possibilitiesSum = 0.0;
@@ -78,7 +78,7 @@ public class UnknownNode<T> extends Node<T>{
 		currentIdentity = maxIdentity;
 		currentWeight = maxWeight / totalVotes;
 		
-		//System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
+		System.out.println(this +" decided to be " + currentIdentity + " with probability " + currentWeight);
 		
 		// Reset votes to get ready for next iteration
 		votes = new HashMap<KnownNode<T>, Float>(baseVotes);

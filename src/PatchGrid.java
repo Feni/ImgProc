@@ -15,7 +15,7 @@ import Markov.Node;
 // simon chelley - PDE , natural scene statistics, multi-scale, wavet based. 
 public class PatchGrid {
 	BufferedImage img;
-	public static final int WINDOW_SIZE = 16;
+	public static final int WINDOW_SIZE = 32;
 	
 	MarkovRandomField<Patch> mrf;
 	

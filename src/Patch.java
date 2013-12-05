@@ -16,7 +16,7 @@ class Patch implements Comparable<Patch>{
     Color avgColor = Color.white;
     
     //static int COLOR_THRESH = 512;
-    static int COLOR_THRESH = 32;
+    static int COLOR_THRESH = 12;
     static double PROB_THRESH = 0.35;
     
     ArrayList<PatchConnection> nextStates = new ArrayList<PatchConnection>();

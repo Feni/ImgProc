@@ -33,7 +33,7 @@ public class KnownNode<T> extends Node<T>{
 		if(node instanceof KnownNode){
 			KnownNode<T> knownNode = (KnownNode<T>)  node;
 			
-			Coordinate iDistance = new Coordinate(distance);
+			Coordinate iDistance = new Coordinate(distance.clone());
 			
 			HashMap<KnownNode<T>, Float> atOffD = atOffset.get(iDistance);
 			if(atOffD == null){	// Nothing till now has been observed at that offset. 
@@ -55,7 +55,6 @@ public class KnownNode<T> extends Node<T>{
 				locationProbSum.put(iDistance, (double) weight);
 			}
 		}
-		
 	}
 		
 	public void printOffsets(){

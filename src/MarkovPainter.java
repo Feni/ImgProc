@@ -29,8 +29,8 @@ public class MarkovPainter{
 			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/sandMaskMed.png"));
 			   			   
 			   BufferedImage rawImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_scaled.jpg"));
-			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask.jpg"));
-			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));			   
+			   //BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask.jpg"));
+			   BufferedImage maskImg = ImageIO.read(new File("/hd/Dropbox/workspace/MarkovPainter/Lincoln_memorial_mask2.jpg"));			   
 			   
 			   PatchGrid imgGrid = new PatchGrid(rawImg, maskImg);
 			   

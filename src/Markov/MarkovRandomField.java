@@ -1,5 +1,6 @@
 package Markov;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -59,6 +60,7 @@ public class MarkovRandomField<T> {
 	
 	public void add(Node<T> newNode, int... coordinates){
 		Coordinate newNodeCoord = new Coordinate(coordinates.clone());
+
 		// Keep track of how many nodes we have to solve for
 		if(newNode instanceof UnknownNode){
 			unknowns.add(newNodeCoord);
@@ -92,7 +94,7 @@ public class MarkovRandomField<T> {
 				neighbors.add(l2);
 			}
 			
-			
+			//System.out.println("Adding a new thingie at " + newNodeCoord + " which has " + neighbors.size() + " valid neighbors : "+neighbors);
 			//System.out.println("Valid neighbors: " + neighbors.size());
 		}else{
 			neighbors = new ArrayList<Coordinate>(sequence.keySet());
@@ -102,15 +104,19 @@ public class MarkovRandomField<T> {
 		/*
 		// Relate it to all existing nodes
 		// TODO: Only do this for nodes at a certain distance from currentNode
-		// Coordinate coord: sequence.keySet()
-		 * */
+		// Coordinate coord: sequence.keySet() 
+		 */
 		for(Coordinate coord: neighbors){
 			//	sequence.get(coord).addConnection(newNode, newNode instanceof KnownMarkovNode ? 1.0f : 0.0f, );
 			Node<T> n = sequence.get(coord);
-			int[] distance = diff(currentPos, coord.coords);
-			int[] revDistance = Node.distanceBack(distance);
+			int[] distance = diff(coordinates, coord.coords).clone();
+			int[] revDistance = Node.distanceBack(distance).clone();
+//			System.out.println("Distance is " + Arrays.toString(distance) + " and rev is " + Arrays.toString(revDistance));
 			n.addConnection(newNode, 1.0f, distance);
 			newNode.addConnection(n, 1.0f, revDistance);
+			
+//			n.addConnection(newNode, 1.0f, revDistance);
+//			newNode.addConnection(n, 1.0f, distance);			
 		}
 		
 		// THEN add it (so that it doesn't get connected with itself)
@@ -134,11 +140,11 @@ public class MarkovRandomField<T> {
 		for(Coordinate coord: unknowns){
 			UnknownNode<T> unk = (UnknownNode<T>) sequence.get(coord);
 			unk.initializeIdentity();
-			System.out.println("Unknown's initial state is " + unk.baseTotal + " : " + unk.baseVotes);
+			//System.out.println("Unknown's initial state is " + unk.baseTotal + " : " + unk.baseVotes);
 		}
 		
 		for(int i = 0; i < iterations; i++){
-			System.out.println("Identity crisis version : " + i);
+			//System.out.println("Identity crisis version : " + i);
 			boolean changed = false;
 			for(Coordinate coord: unknowns){
 				UnknownNode<T> unk = (UnknownNode<T>) sequence.get(coord);
@@ -155,9 +161,9 @@ public class MarkovRandomField<T> {
 				//break;
 			}
 			
-//			try{
-//				Thread.sleep(1000);
-//			}catch(Exception e){}
+			try{
+				Thread.sleep(1000);
+			}catch(Exception e){}
 		}
 	}
 	
